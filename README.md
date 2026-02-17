@@ -1,70 +1,59 @@
-# Getting Started with Create React App
+# MRI Sim
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A rudimentary MRI trade-off simulator designed to demonstrate the "Iron Triangle" of MRI physics: **Signal-to-Noise Ratio (SNR)**, **Spatial Resolution**, and **Scan Time**.
+
+This tool allows students, radiographers, and enthusiasts to visualize how changing acquisition parameters affects image quality, artifacts, and patient scan duration.
+
+## Features
+
+*   **Interactive Controls:** Adjust NEX (Number of Excitations), Matrix (Resolution), and Slice Thickness.
+*   **Pulse Sequence Selector:** Choose between common musculoskeletal sequences (UTE, 3D GRE, 3D FSE, PD FSE).
+*   **Real-time Visualization:**
+    *   **2D Slice Artifacts:** Visualizes noise (grain), pixelation, and partial volume averaging (stair-step artifacts).
+    *   **3D Reconstruction:** Simulates how slice thickness impacts 3D model fidelity.
+    *   **The Iron Triangle:** Dynamic bar charts showing the trade-off between SNR, Resolution, and Speed.
+*   **Radiologist's Impression:** Dynamic feedback warning about diagnostic pitfalls (e.g., motion artifacts from long scans, missed fractures from thick slices).
+
+## Pulse Sequence Timing & Physics References
+
+The simulator uses simplified formulas to approximate scan times and image characteristics. Below are the base values used, derived from standard clinical musculoskeletal protocols.
+
+### Scan Time Approximation
+The simulator uses a simplified formula proportional to:
+`Time ∝ (Phase Encoding Lines × NEX × TR) / ETL`
+
+*   **Phase Encoding Lines:** Derived from the "Matrix" slider (e.g., 128, 256, 512).
+*   **NEX:** Number of Excitations/Averages.
+*   **Slices/Partitions:** Penalties are applied for high-resolution 3D acquisitions (thin slices).
+
+### Sequence Parameters
+Values are based on typical 1.5T/3T Clinical MSK Protocols:
+
+| Sequence | Full Name | TR (ms) | TE (ms) | ETL | Usage | Reference Logic |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **UTE** | Ultrashort TE | 10 | 0.05 | 1 | Cortical bone, Tendon | Radial acquisition allows $TE < 0.1ms$. Very short $TR$ ($10-20ms$) is standard. |
+| **3D GRE** | Gradient Echo (SPGR/FLASH) | 20 | 5 | 1 | Cartilage (fast) | Standard T1-weighted 3D GRE uses short $TR$ ($20-50ms$) and low flip angles. |
+| **3D FSE** | Fast Spin Echo (SPACE/CUBE) | 1500 | 30 | 60 | 3D Isotropic Vol | High ETL (~40-90) allows long $TR$ ($1500ms+$) to be acquired in reasonable time. |
+| **PD FSE** | Proton Density 2D FSE | 3000 | 30 | 12 | Meniscus, Articular Cartilage | Gold standard. Long $TR$ ($2000-4000ms$) for PD weighting. Moderate ETL ($10-15$) to prevent blurring. |
+
+*Note: In reality, 3D FSE sequences often use variable flip angles and very long echo trains to manage SAR and blurring, which this simulator simplifies to a fixed ETL.*
+
+## Deployment
+
+The project includes an `amplify.yml` configuration for easy deployment to **AWS Amplify**.
+
+1.  Push code to your git provider.
+2.  Connect repository in AWS Amplify Console.
+3.  Deploy.
 
 ## Available Scripts
 
 In the project directory, you can run:
 
 ### `npm start`
-
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
 ### `npm run build`
+Builds the app for production to the `build` folder.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
