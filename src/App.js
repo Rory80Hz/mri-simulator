@@ -200,19 +200,65 @@ const MRISimulator = () => {
          
         {/* Dynamic Analysis Note */}
         <div className="mb-6 p-4 bg-slate-800/80 border border-slate-700 rounded-lg w-full">
-          <div className="flex items-center gap-2 mb-2 text-amber-400 text-sm font-bold uppercase tracking-wider">
+          <div className="flex items-center gap-2 mb-4 text-amber-400 text-sm font-bold uppercase tracking-wider">
             <Activity className="w-4 h-4" />
-            Image Quality Analysis
+            Physics Trade-off Analysis
           </div>
-          <ul className="text-sm text-slate-400 space-y-2 list-disc pl-4">
-            {scanTimeSeconds > 600 && <li className="text-red-400">Time Warning: Scan > 10m. High risk of patient motion artifacts!</li>}
-            {nex === 1 && <li className="text-red-400">High noise floor (grainy). Low SNR obscures fine details.</li>}
-            {resolution < 128 && <li className="text-red-400">Severe pixelation. Cannot distinguish small structures.</li>}
-            {sliceThickness > 5 && <li className="text-red-400">Thick slices ( >5mm ) causing severe "stair-step" artifacts.</li>}
-            {sliceThickness === 3 && <li className="text-yellow-400">3mm slices: Acceptable for general structure, but subtle curving steps visible.</li>}
-            {sliceThickness <= 1 && <li className="text-emerald-400">1mm slices: High fidelity 3D reconstruction possible (Smooth isotropic voxels).</li>}
-            {nex >= 3 && resolution >= 256 && sliceThickness <= 3 && scanTimeSeconds < 600 && <li className="text-emerald-400">Optimal diagnostic quality.</li>}
-          </ul>
+          
+          {/* Iron Triangle Visualizer */}
+          <div className="space-y-4 mb-4">
+             {/* SNR Bar */}
+             <div>
+                <div className="flex justify-between text-xs mb-1">
+                    <span className="text-blue-300 font-bold">SNR (Signal-to-Noise)</span>
+                    <span className="text-slate-400">{Math.round(((nex/4)*50 + (sliceThickness/10)*30 + ((512-resolution)/512)*20))}%</span>
+                </div>
+                <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                        className="h-full bg-blue-500 transition-all duration-500" 
+                        style={{ width: `${((nex/4)*50 + (sliceThickness/10)*30 + ((512-resolution)/512)*20)}%` }}
+                    />
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">High SNR needs averages (NEX) or large voxels (Thick slices).</p>
+             </div>
+
+             {/* Resolution Bar */}
+             <div>
+                <div className="flex justify-between text-xs mb-1">
+                    <span className="text-green-300 font-bold">Spatial Resolution</span>
+                    <span className="text-slate-400">{Math.round(((resolution/512)*60 + ((11-sliceThickness)/10)*40))}%</span>
+                </div>
+                <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                        className="h-full bg-green-500 transition-all duration-500" 
+                        style={{ width: `${((resolution/512)*60 + ((11-sliceThickness)/10)*40)}%` }}
+                    />
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">Dependent on Matrix size and Slice Thickness.</p>
+             </div>
+
+             {/* Time Bar (Inverted: High Score = Fast Scan) */}
+             <div>
+                <div className="flex justify-between text-xs mb-1">
+                    <span className="text-red-300 font-bold">Speed efficiency</span>
+                    <span className="text-slate-400">{Math.max(0, Math.min(100, Math.round(100 - (scanTimeSeconds/600)*100)))}%</span>
+                </div>
+                <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                        className={`h-full transition-all duration-500 ${scanTimeSeconds > 600 ? "bg-red-600" : "bg-red-400"}`}
+                        style={{ width: `${Math.max(5, Math.min(100, 100 - (scanTimeSeconds/600)*100))}%` }}
+                    />
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">High Resolution & NEX kill scan speed.</p>
+             </div>
+          </div>
+
+          <div className="text-xs text-slate-300 italic border-t border-slate-700 pt-3">
+             "The Iron Triangle": You cannot maximize all three. 
+             {scanTimeSeconds < 120 && resolution < 256 && " Fast scan, but low resolution."}
+             {resolution > 300 && nex > 2 && " Excellent quality, but patient must be still for long periods."}
+             {sliceThickness > 5 && " High SNR, but poor 3D reformats due to partial voluming."}
+          </div>
         </div>
 
          <h3 className="text-lg font-bold text-slate-300 mb-6 flex items-center gap-2">
