@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Maximize2, Layers, Repeat, Activity, Clock, Database } from 'lucide-react';
+import { Maximize2, Layers, Repeat, Activity, Clock, Database, HelpCircle, X } from 'lucide-react';
 
 const MriIcon = () => (
   <svg viewBox="0 0 100 100" className="w-8 h-8 text-blue-400" fill="currentColor">
@@ -17,6 +17,7 @@ const MRISimulator = () => {
   const [resolution, setResolution] = useState(128); // 128 (Low) to 512 (High)
   const [sliceThickness, setSliceThickness] = useState(5); // 1mm (Thin) to 10mm (Thick)
   const [sequenceType, setSequenceType] = useState('PD_FSE');
+  const [showHelp, setShowHelp] = useState(false);
 
   // Sequence Definitions
   const sequences = {
@@ -99,10 +100,19 @@ const MRISimulator = () => {
       
       {/* --- CONTROL PANEL --- */}
       <div className="w-full lg:w-1/3 space-y-8 bg-slate-900/50 p-8 rounded-2xl border border-slate-800 shadow-xl backdrop-blur-sm">
-        <h2 className="text-2xl font-bold flex items-center gap-3 border-b border-slate-800 pb-4 text-blue-400">
-          <MriIcon />
-          MRI Console
-        </h2>
+        <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+            <h2 className="text-2xl font-bold flex items-center gap-3 text-blue-400">
+            <MriIcon />
+            MRI Console
+            </h2>
+            <button 
+                onClick={() => setShowHelp(true)}
+                className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"
+                title="Help & Physics Reference"
+            >
+                <HelpCircle size={20} />
+            </button>
+        </div>
 
         {/* Sequence Selector */}
         <div className="space-y-3 p-5 bg-slate-800 rounded-lg border border-slate-700 shadow-inner">
@@ -453,6 +463,107 @@ const MRISimulator = () => {
           </div>
         </div>
       </div>
+      
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div className="bg-slate-900 border border-slate-700 w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl shadow-2xl relative">
+                <button 
+                    onClick={() => setShowHelp(false)}
+                    className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full"
+                >
+                    <X size={24} />
+                </button>
+                
+                <div className="p-8">
+                    <h2 className="text-2xl font-bold text-blue-400 mb-2 flex items-center gap-2">
+                        <MriIcon /> MRI Sim Help
+                    </h2>
+                    <p className="text-slate-400 mb-6 border-b border-slate-800 pb-4">
+                        A rudimentary MRI trade-off simulator designed to demonstrate the "Iron Triangle" of MRI physics: 
+                        <strong className="text-slate-200"> Signal-to-Noise Ratio (SNR)</strong>, 
+                        <strong className="text-slate-200"> Spatial Resolution</strong>, and 
+                        <strong className="text-slate-200"> Scan Time</strong>.
+                    </p>
+
+                    <h3 className="text-lg font-bold text-white mb-3">Controls</h3>
+                    <ul className="space-y-2 mb-6 text-sm text-slate-300">
+                        <li><strong className="text-blue-300">NEX (Number of Excitations):</strong> Averages multiple signals to reduce random noise. Increases scan time linearly.</li>
+                        <li><strong className="text-green-300">Matrix (Resolution):</strong> Higher matrix (e.g., 512x512) means smaller pixels and better detail, but requires more phase-encoding steps, increasing scan time.</li>
+                        <li><strong className="text-purple-300">Slice Thickness:</strong> Thinner slices reduce partial volume averaging (less stair-stepping) but reduce SNR (less proton signal per voxel) and often increase scan time for 3D volumes.</li>
+                    </ul>
+
+                    <h3 className="text-lg font-bold text-white mb-3">Pulse Sequence Reference</h3>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-xs text-left mb-4">
+                            <thead className="text-slate-500 uppercase bg-slate-800/50">
+                                <tr>
+                                    <th className="p-2">Sequence</th>
+                                    <th className="p-2">TR (ms)</th>
+                                    <th className="p-2">TE (ms)</th>
+                                    <th className="p-2">Usage</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800 text-slate-300">
+                                <tr>
+                                    <td className="p-2 font-bold text-orange-400">UTE</td>
+                                    <td className="p-2">10</td>
+                                    <td className="p-2">0.05</td>
+                                    <td className="p-2">Cortical bone, Tendon (Very short TE)</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-2 font-bold text-orange-400">3D GRE</td>
+                                    <td className="p-2">20</td>
+                                    <td className="p-2">5</td>
+                                    <td className="p-2">Fast cartilage acquisition</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-2 font-bold text-orange-400">3D FSE</td>
+                                    <td className="p-2">1500</td>
+                                    <td className="p-2">30</td>
+                                    <td className="p-2">High SNR 3D Volume (Long TR)</td>
+                                </tr>
+                                <tr>
+                                    <td className="p-2 font-bold text-orange-400">PD FSE</td>
+                                    <td className="p-2">3000</td>
+                                    <td className="p-2">30</td>
+                                    <td className="p-2">Clinical Gold Standard (Meniscus)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-white mb-3">Glossary</h3>
+                    <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-400">
+                        <div>
+                            <dt className="font-bold text-blue-300">TR (Repetition Time)</dt>
+                            <dd>Time between RF excitation pulses. Determines T1 weighting and total scan duration.</dd>
+                        </div>
+                        <div>
+                            <dt className="font-bold text-green-300">TE (Echo Time)</dt>
+                            <dd>Time from excitation to signal collection. Determines T2 weighting and susceptibility.</dd>
+                        </div>
+                        <div>
+                            <dt className="font-bold text-purple-300">ETL (Echo Train Length)</dt>
+                            <dd>Number of echoes collected per TR in FSE sequences. High ETL speeds up scanning but can cause blurring.</dd>
+                        </div>
+                        <div>
+                            <dt className="font-bold text-orange-300">FOV (Field of View)</dt>
+                            <dd>The physical area covered by the image (e.g., 24cm). Smaller FOV increases resolution but reduces SNR.</dd>
+                        </div>
+                         <div>
+                            <dt className="font-bold text-cyan-300">PD (Proton Density)</dt>
+                            <dd>Image contrast dependent primarily on the density of protons (Hydrogen) in tissue, minimizing T1/T2 effects.</dd>
+                        </div>
+                         <div>
+                            <dt className="font-bold text-pink-300">GRE / FSE</dt>
+                            <dd>Gradient Recalled Echo vs Fast Spin Echo. Different methods of creating the echo signal.</dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </div>
+      )}
     </div>
   );
 };
